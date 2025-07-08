@@ -32,7 +32,8 @@ $router->get('/admin/ver_clientes_registrados', 'AdminController@viewRegisteredC
 $router->get('/admin/nuevo_servicio', 'AdminController@newService');
 $router->get('/admin/ver_servicios', 'AdminController@viewServices');
 $router->get('/admin/listado_usuarios', 'AdminController@listUsers');
-$router->get('/admin/registrar', 'AdminController@registerNewUser'); // Ruta para registrar nuevo usuario
+$router->get('/admin/registrar', 'AdminController@registerNewUser');
+$router->post('/admin/registrar', 'AdminController@storeUser');  // Ruta para registrar nuevo usuario
 $router->get('/admin/aprobar_acceso', 'AdminController@approveAccess');
 $router->get('/admin/servicios_prestados', 'AdminController@servicesOffered');
 $router->get('/admin/localidades', 'AdminController@localities');

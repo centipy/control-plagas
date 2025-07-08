@@ -1,5 +1,5 @@
 <?php
-// views/admin/admin_dashboard.php
+// views/admin/admin_dashboard.php (ACTUALIZADO)
 require_once __DIR__ . '/../../app/Helpers/Session.php';
 Session::start();
 
@@ -21,56 +21,13 @@ if ($userRole !== 'administrador') {
     <link href="<?php echo $basePath; ?>/public/css/output.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* Estilos personalizados para la sidebar */
-        .sidebar {
-            width: 250px; /* Ancho fijo de la sidebar */
-        }
-        /* Ajuste para que la página completa tenga min-h-screen */
-        body {
-            min-height: 100vh;
-        }
+        .sidebar { width: 250px; }
+        body { min-height: 100vh; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans antialiased flex">
-    <div class="sidebar bg-indigo-800 text-white flex flex-col p-4 shadow-lg h-screen">
-        <div class="logo text-2xl font-bold mb-8 text-center">
-            <i class="fas fa-user-shield text-indigo-300 mr-2"></i> Administrador
-        </div>
-        <nav class="flex flex-col space-y-3">
-            <a href="<?php echo $basePath; ?>/admin/aniadir_cliente" class="flex items-center px-4 py-2 text-indigo-100 hover:bg-indigo-700 rounded-lg transition-colors duration-200">
-                <i class="fas fa-user-plus mr-3"></i> Añadir Nuevo Cliente
-            </a>
-            <a href="<?php echo $basePath; ?>/admin/ver_clientes_registrados" class="flex items-center px-4 py-2 text-indigo-100 hover:bg-indigo-700 rounded-lg transition-colors duration-200">
-                <i class="fas fa-users mr-3"></i> Ver Clientes Registrados
-            </a>
-            <a href="<?php echo $basePath; ?>/admin/nuevo_servicio" class="flex items-center px-4 py-2 text-indigo-100 hover:bg-indigo-700 rounded-lg transition-colors duration-200">
-                <i class="fas fa-concierge-bell mr-3"></i> Registrar nuevo servicio
-            </a>
-            <a href="<?php echo $basePath; ?>/admin/ver_servicios" class="flex items-center px-4 py-2 text-indigo-100 hover:bg-indigo-700 rounded-lg transition-colors duration-200">
-                <i class="fas fa-tasks mr-3"></i> Ver Servicios
-            </a>
-            <a href="<?php echo $basePath; ?>/admin/listado_usuarios" class="flex items-center px-4 py-2 text-indigo-100 hover:bg-indigo-700 rounded-lg transition-colors duration-200">
-                <i class="fas fa-users mr-3"></i> Listado de Usuarios
-            </a>
-            <a href="<?php echo $basePath; ?>/admin/registrar" class="flex items-center px-4 py-2 text-indigo-100 hover:bg-indigo-700 rounded-lg transition-colors duration-200">
-                <i class="fas fa-user-plus mr-3"></i> Registrar Nuevo Usuario
-            </a>
-            <a href="<?php echo $basePath; ?>/admin/aprobar_acceso" class="flex items-center px-4 py-2 text-indigo-100 hover:bg-indigo-700 rounded-lg transition-colors duration-200">
-                <i class="fas fa-user-plus mr-3"></i> Aprobar Acceso
-            </a>
-            <a href="<?php echo $basePath; ?>/admin/servicios_prestados" class="flex items-center px-4 py-2 text-indigo-100 hover:bg-indigo-700 rounded-lg transition-colors duration-200">
-                <i class="fas fa-clipboard-list mr-3"></i> Servicios Que Se Prestan
-            </a>
-            <a href="<?php echo $basePath; ?>/admin/localidades" class="flex items-center px-4 py-2 text-indigo-100 hover:bg-indigo-700 rounded-lg transition-colors duration-200">
-                <i class="fas fa-map-marker-alt mr-3"></i> Localidades
-            </a>
-        </nav>
-        <div class="mt-auto">
-            <a href="<?php echo $basePath; ?>/logout" class="flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors duration-200">
-                <i class="fas fa-sign-out-alt mr-3"></i> Salir
-            </a>
-        </div>
-    </div>
+
+    <?php include __DIR__ . '/admin_dashboard_sidebar.php'; ?>
 
     <div class="flex-1 p-8">
         <h1 class="text-4xl font-extrabold text-indigo-700 mb-4">
