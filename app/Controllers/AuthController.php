@@ -71,7 +71,7 @@ class AuthController {
         exit();
     }
 
-    private function redirectToDashboard($role) {
+    public function redirectToDashboard($role) {
         switch ($role) {
             case 'administrador':
                 header('Location: /control-plagas/admin/dashboard');

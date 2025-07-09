@@ -4,6 +4,7 @@
 // Ruta para la página de inicio (root)
 $router->get('/', function() use ($basePath) {
     // Redirige al login si no está logueado, o al dashboard si sí lo está
+    require_once __DIR__ . '/../app/Controllers/AuthController.php';
     require_once __DIR__ . '/../app/Helpers/Session.php';
     Session::start();
     if (!Session::has('user_id')) {
@@ -12,7 +13,6 @@ $router->get('/', function() use ($basePath) {
     }
     // Si ya está logueado, redirige al dashboard de su rol
     // Esto se maneja en AuthController::redirectToDashboard
-    require_once __DIR__ . '/../app/Controllers/AuthController.php';
     global $pdo;
     $authController = new AuthController($pdo);
     $authController->redirectToDashboard(Session::get('user_role'));

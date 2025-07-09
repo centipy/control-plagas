@@ -176,12 +176,38 @@ class AdminController {
         // Puedes añadir más validaciones para el teléfono, etc.
 
         if (empty($errors)) {
-            // ... (hashear y crear usuario) ...
+            $hashed_password = password_hash($password, PASSWORD_BCRYPT);
+            $userData = [
+                'nombre_usuario' => $nombre_usuario,
+                'contrasena_hash' => $hashed_password,
+                'rol' => $rol,
+                'nombre_completo' => $nombre_completo,
+                'email' => $email,
+                'telefono' => $telefono
+            ];
+
+            // Depuración de inserción:
+            error_log("Intentando crear usuario con datos: " . print_r($userData, true));
+            
+            $newUserId = $userModel->create($userData);
+
+            if ($newUserId) {
+                error_log("Usuario creado con ID: " . $newUserId);
+                Session::set('form_message', "Usuario '{$nombre_usuario}' registrado exitosamente.");
+                Session::set('form_message_type', 'success');
+                header('Location: ' . $this->basePath . '/admin/listado_usuarios');
+                exit();
+            } else {
+                // Depuración de fallo de inserción:
+                error_log("FALLO en User::create(). Probablemente por una excepción de la DB (UNIQUE constraint).");
+                Session::set('form_message', "Error al registrar el usuario. El nombre de usuario o email ya existen. Intente de nuevo."); // Mensaje más específico
+                Session::set('form_message_type', 'error');
+            }
         } else {
-            // Si hay errores de validación
+            // Depuración de errores de validación:
+            error_log("Errores de validación encontrados: " . implode(' | ', $errors));
             Session::set('form_message', implode('<br>', $errors));
             Session::set('form_message_type', 'error');
-            // Guardar los datos enviados (excepto la contraseña) para rellenar el formulario
             Session::set('old_input', [
                 'nombre_usuario' => $nombre_usuario,
                 'nombre_completo' => $nombre_completo,
@@ -190,6 +216,7 @@ class AdminController {
                 'rol' => $rol,
             ]);
         }
+        // Esta línea redirige de vuelta al formulario de registro en caso de error o fallo de inserción
         header('Location: ' . $this->basePath . '/admin/registrar');
         exit();
     }
