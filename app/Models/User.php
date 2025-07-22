@@ -103,4 +103,46 @@ class User {
         $stmt->execute([':email' => $email]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     } 
+
+    /**
+     * Actualiza los datos de un usuario existente.
+     * @param int $userId ID del usuario a actualizar.
+     * @param array $data Array asociativo con los datos a actualizar.
+     * @return bool True en éxito, false en error.
+     */
+    public function update($userId, array $data) {
+        if (!$userId) {
+            error_log("Error en User::update: ID de usuario no proporcionado.");
+            return false;
+        }
+
+        $fields = [];
+        $params = [':id' => $userId];
+
+        // Construir la consulta dinámicamente con los campos que se van a actualizar
+        foreach ($data as $key => $value) {
+            if ($key === 'contrasena') { // Si se va a actualizar la contraseña
+                $fields[] = "contrasena = :contrasena_hash";
+                $params[':contrasena_hash'] = $value;
+            } else {
+                $fields[] = "$key = :$key";
+                $params[":$key"] = $value;
+            }
+        }
+
+        if (empty($fields)) {
+            return false; // No hay campos para actualizar
+        }
+
+        $query = "UPDATE " . $this->table . " SET " . implode(', ', $fields) . " WHERE id = :id";
+        $stmt = $this->pdo->prepare($query);
+
+        try {
+            return $stmt->execute($params);
+        } catch (PDOException $e) {
+            error_log("Error en User::update (DB): " . $e->getMessage());
+            // Aquí podrías loggear $stmt->debugDumpParams(); para ver la consulta
+            return false;
+        }
+    }
 }

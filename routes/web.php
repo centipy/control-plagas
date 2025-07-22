@@ -37,6 +37,14 @@ $router->post('/admin/registrar', 'AdminController@storeUser');  // Ruta para re
 $router->get('/admin/aprobar_acceso', 'AdminController@approveAccess');
 $router->get('/admin/servicios_prestados', 'AdminController@servicesOffered');
 $router->get('/admin/localidades', 'AdminController@localities');
+
+// RUTAS para EDITAR y ACTUALIZAR usuarios
+$router->get('/admin/editar_usuario', 'AdminController@editUser'); // Para cargar el formulario en el modal
+$router->post('/admin/actualizar_usuario', 'AdminController@updateUser'); // Para procesar el POST (simulando PUT)
+
+// Rutas para eliminar y restaurar (existentes)
+$router->post('/admin/eliminar_usuario', 'AdminController@deleteUser'); // <-- RUTA POST para eliminar
+$router->get('/admin/restaurar_usuario', 'AdminController@restoreUser');
 // Añade más rutas de administrador según sea necesario
 
 // Ejemplo de rutas para Asesor (Crearás AsesorController similar a AdminController)

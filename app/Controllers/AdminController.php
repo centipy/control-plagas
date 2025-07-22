@@ -95,20 +95,18 @@ class AdminController {
         $this->renderView('listado_usuarios', [
             'userName' => Session::get('user_full_name'),
             'userRole' => Session::get('user_role'),
-            'users' => $users, // Pasamos la variable $users a la vista
-            'errorMessage' => $errorMessage // Pasamos el mensaje de error también
+            'users' => $users,
+            'errorMessage' => $errorMessage
         ]);
     }
 
     public function registerNewUser() {
-        // Recuperar datos enviados previamente si hubo un error de validación
         $oldInput = Session::get('old_input', []);
-        Session::set('old_input', null); // Limpiar después de obtener
-
+        Session::set('old_input', null);
         $this->renderView('registrar', [
             'userName' => Session::get('user_full_name'),
             'userRole' => Session::get('user_role'),
-            'oldInput' => $oldInput // Pasar los datos antiguos a la vista
+            'oldInput' => $oldInput
         ]);
     }
 
@@ -220,6 +218,68 @@ class AdminController {
         header('Location: ' . $this->basePath . '/admin/registrar');
         exit();
     }
+
+    public function deleteUser() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            Session::set('form_message', "Método no permitido.");
+            Session::set('form_message_type', 'error');
+            header('Location: ' . $this->basePath . '/admin/listado_usuarios');
+            exit();
+        }
+
+        // Verifica que la petición provenga del formulario del modal
+        if (($_POST['_method'] ?? '') !== 'DELETE') {
+            Session::set('form_message', "Petición inválida.");
+            Session::set('form_message_type', 'error');
+            header('Location: ' . $this->basePath . '/admin/listado_usuarios');
+            exit();
+        }
+
+        $userId = filter_input(INPUT_POST, 'user_id', FILTER_VALIDATE_INT);
+
+        if (!$userId) {
+            Session::set('form_message', "ID de usuario no válido.");
+            Session::set('form_message_type', 'error');
+            header('Location: ' . $this->basePath . '/admin/listado_usuarios');
+            exit();
+        }
+
+        $userModel = new User($this->pdo);
+        if ($userModel->softDelete($userId)) {
+            Session::set('form_message', "Usuario eliminado lógicamente (inactivado) con éxito.");
+            Session::set('form_message_type', 'success');
+        } else {
+            Session::set('form_message', "Error al eliminar lógicamente el usuario. Intente de nuevo.");
+            Session::set('form_message_type', 'error');
+        }
+        header('Location: ' . $this->basePath . '/admin/listado_usuarios');
+        exit();
+    }
+
+    // NUEVO MÉTODO: Restaurar usuario (revertir Soft Delete)
+    public function restoreUser() {
+        // Para simplificar, asumimos que este se activa con un GET desde un enlace
+        // En una app más grande, podrías querer un POST para esto también.
+        $userId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+
+        if (!$userId) {
+            Session::set('form_message', "ID de usuario no válido para restaurar.");
+            Session::set('form_message_type', 'error');
+            header('Location: ' . $this->basePath . '/admin/listado_usuarios');
+            exit();
+        }
+
+        $userModel = new User($this->pdo);
+        if ($userModel->restore($userId)) {
+            Session::set('form_message', "Usuario restaurado (activado) con éxito.");
+            Session::set('form_message_type', 'success');
+        } else {
+            Session::set('form_message', "Error al restaurar el usuario. Intente de nuevo.");
+            Session::set('form_message_type', 'error');
+        }
+        header('Location: ' . $this->basePath . '/admin/listado_usuarios');
+        exit();
+    }
     
     public function approveAccess() {
         $this->renderView('aprobar_acceso', [
@@ -241,4 +301,153 @@ class AdminController {
             'userRole' => Session::get('user_role')
         ]);
     }
+
+    
+public function editUser() {
+        $userId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+
+        if (!$userId) {
+            Session::set('form_message', "ID de usuario no válido para edición.");
+            Session::set('form_message_type', 'error');
+            header('Location: ' . $this->basePath . '/admin/listado_usuarios');
+            exit();
+        }
+
+        $userModel = new User($this->pdo);
+        $userToEdit = $userModel->findById($userId); // Obtener datos del usuario
+
+        if (!$userToEdit) {
+            Session::set('form_message', "Usuario no encontrado.");
+            Session::set('form_message_type', 'error');
+            header('Location: ' . $this->basePath . '/admin/listado_usuarios');
+            exit();
+        }
+
+        // Pasa los datos del usuario a la vista para pre-rellenar
+        $this->renderView('editar_usuario_form', [ // Nota: Aquí se incluye solo el formulario, no la página completa
+            'userName' => Session::get('user_full_name'),
+            'userRole' => Session::get('user_role'),
+            'userToEdit' => $userToEdit,
+            'message' => Session::get('form_message'), // Para mostrar mensajes después de una redirección POST fallida
+            'messageType' => Session::get('form_message_type'),
+            'oldInput' => Session::get('old_input_edit', []), // Para rellenar si hubo error en update
+        ]);
+        Session::set('form_message', null); // Limpiar después de mostrar
+        Session::set('form_message_type', null);
+        Session::set('old_input_edit', null); // Limpiar old_input_edit
+    }
+
+    // NUEVO MÉTODO: Procesar la actualización del usuario
+    public function updateUser() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            Session::set('form_message', "Método no permitido para la actualización.");
+            Session::set('form_message_type', 'error');
+            header('Location: ' . $this->basePath . '/admin/listado_usuarios');
+            exit();
+        }
+
+        // Simular método PUT
+        if (($_POST['_method'] ?? '') !== 'PUT') {
+            Session::set('form_message', "Petición inválida para actualización.");
+            Session::set('form_message_type', 'error');
+            header('Location: ' . $this->basePath . '/admin/listado_usuarios');
+            exit();
+        }
+
+        $userId = filter_input(INPUT_POST, 'user_id', FILTER_VALIDATE_INT);
+
+        // Validaciones del lado del servidor (similar a storeUser)
+        $nombre_usuario = trim($_POST['nombre_usuario'] ?? '');
+        $nombre_completo = trim($_POST['nombre_completo'] ?? '');
+        $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+        $telefono = trim($_POST['telefono'] ?? '');
+        $password = $_POST['password'] ?? ''; // Nueva contraseña (puede estar vacía)
+        $confirm_password = $_POST['confirm_password'] ?? '';
+        $rol = trim($_POST['rol'] ?? '');
+
+        $errors = [];
+
+        if (!$userId) {
+            $errors[] = "ID de usuario no válido para actualizar.";
+        } else {
+            $userModel = new User($this->pdo);
+            $existingUser = $userModel->findById($userId); // Obtener usuario existente para validaciones
+            if (!$existingUser) {
+                $errors[] = "Usuario a editar no encontrado.";
+            } else {
+                // Validar nombre de usuario (único y no igual al actual)
+                if (empty($nombre_usuario) || strlen($nombre_usuario) < 3) {
+                    $errors[] = "El nombre de usuario es obligatorio y debe tener al menos 3 caracteres.";
+                } elseif ($nombre_usuario !== $existingUser['nombre_usuario'] && $userModel->findByUsername($nombre_usuario)) {
+                    $errors[] = "El nombre de usuario ya está en uso.";
+                }
+
+                // Validar email (único y no igual al actual, si no está vacío)
+                if (!empty($email)) {
+                    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                        $errors[] = "El formato del correo electrónico no es válido.";
+                    } elseif ($email !== $existingUser['email'] && $userModel->findByEmail($email)) {
+                        $errors[] = "El correo electrónico ya está registrado.";
+                    }
+                }
+
+                // Validar contraseñas solo si se proporcionaron
+                if (!empty($password)) {
+                    if (strlen($password) < 6) {
+                        $errors[] = "La nueva contraseña debe tener al menos 6 caracteres.";
+                    }
+                    if ($password !== $confirm_password) {
+                        $errors[] = "Las nuevas contraseñas no coinciden.";
+                    }
+                }
+
+                $allowedRoles = ['administrador', 'asesor', 'fumigador'];
+                if (!in_array($rol, $allowedRoles)) {
+                    $errors[] = "Rol seleccionado no válido.";
+                }
+            }
+        }
+        
+        if (empty($errors)) {
+            $updateData = [
+                'nombre_usuario' => $nombre_usuario,
+                'nombre_completo' => $nombre_completo,
+                'email' => $email,
+                'telefono' => $telefono,
+                'rol' => $rol,
+            ];
+
+            if (!empty($password)) { // Solo hashear y añadir si se va a cambiar la contraseña
+                $updateData['contrasena'] = password_hash($password, PASSWORD_BCRYPT);
+            }
+            
+            // Llama a un nuevo método updateUser en el User Model
+            if ($userModel->update($userId, $updateData)) { // <--- Asume que creamos User::update
+                Session::set('form_message', "Usuario actualizado exitosamente.");
+                Session::set('form_message_type', 'success');
+                header('Location: ' . $this->basePath . '/admin/listado_usuarios');
+                exit();
+            } else {
+                Session::set('form_message', "Error al actualizar el usuario. Verifique los datos.");
+                Session::set('form_message_type', 'error');
+            }
+
+        } else {
+            Session::set('form_message', implode('<br>', $errors));
+            Session::set('form_message_type', 'error');
+            Session::set('old_input_edit', [ // Usar old_input_edit para este formulario
+                'nombre_usuario' => $nombre_usuario,
+                'nombre_completo' => $nombre_completo,
+                'email' => $email,
+                'telefono' => $telefono,
+                'rol' => $rol,
+                'user_id' => $userId // Es importante mantener el ID del usuario para el reenvío
+            ]);
+        }
+        // Redirigir de vuelta al formulario de edición (en el modal)
+        header('Location: ' . $this->basePath . '/admin/editar_usuario?id=' . $userId);
+        exit();
+    }
 }
+
+    
